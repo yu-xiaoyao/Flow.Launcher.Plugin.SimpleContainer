@@ -1,0 +1,12 @@
+{
+    "ID": "A28FA54B16B34FCB99ACEE49A5E8B150",
+    "ActionKeyword": "sc",
+    "Name": "SimpleContainer",
+    "Description": "A Simple Container Manage plugin for Flow-Launcher",
+    "Author": "yu-xiaoyao",
+    "Version": "1.0.0",
+    "Language": "csharp",
+    "Website": "https://github.com/yu-xiaoyao/Flow.Launcher.Plugin.SimpleContainer",
+    "IcoPath": "Images\\SimpleContainer.png",
+    "ExecuteFileName": "Flow.Launcher.Plugin.SimpleContainer.dll"
+}

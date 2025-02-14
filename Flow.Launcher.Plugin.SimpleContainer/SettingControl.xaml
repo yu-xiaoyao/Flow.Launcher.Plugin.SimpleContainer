@@ -1,0 +1,92 @@
+﻿<UserControl x:Class="Flow.Launcher.Plugin.SimpleContainer.SettingControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:Flow.Launcher.Plugin.SimpleContainer"
+             mc:Ignorable="d"
+             Height="300">
+
+    <Grid Margin="0">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+
+        <StackPanel
+            Grid.Row="0"
+            Margin="8 8 8 8"
+            Orientation="Horizontal">
+
+            <TextBlock
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                Width="160"
+                TextAlignment="Center"
+                Text="Container Type: " />
+
+
+            <RadioButton Name="RadioButtonDocker" Content="Docker" GroupName="ContainerType" Width="100"
+                         VerticalAlignment="Center" Checked="ContainerType_Docker_Checked">
+            </RadioButton>
+
+            <RadioButton Name="RadioButtonPodman" Content="Podman" GroupName="ContainerType" Width="100"
+                         VerticalAlignment="Center" Checked="ContainerType_Podman_Checked">
+            </RadioButton>
+
+        </StackPanel>
+
+        <StackPanel
+            Grid.Row="1"
+            Margin="8 8 8 8"
+            Orientation="Horizontal">
+
+            <TextBlock
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                Width="160"
+                TextAlignment="Center"
+                Text="Execute Path: " />
+
+
+            <TextBox Name="TextBoxExecutePath" VerticalAlignment="Center" Width="360"></TextBox>
+
+            <Button VerticalAlignment="Center" Width="64" Click="ButtonSavePath_OnClick">Save</Button>
+            <Button VerticalAlignment="Center" Width="64" Click="ButtonReset_OnClick">Reset</Button>
+
+            <TextBlock
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                TextAlignment="Center"
+                Text="If container path config in env, it can be empty" />
+
+        </StackPanel>
+
+
+        <StackPanel
+            Grid.Row="1"
+            Margin="8 8 8 8"
+            Orientation="Horizontal">
+
+            <TextBlock
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                Width="160"
+                TextAlignment="Center"
+                Text="Default Export Path: " />
+
+
+            <TextBox Name="TextBoxExportDirectory" VerticalAlignment="Center" Width="360"></TextBox>
+
+            <Button VerticalAlignment="Center" Width="64" Click="ButtonSetExportPath_OnClick">Save</Button>
+            <Button VerticalAlignment="Center" Width="64" Click="ButtonResetExportPath_OnClick">Reset</Button>
+
+            <TextBlock
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                TextAlignment="Center"
+                Text="If empty, default is Desktop Path" />
+
+        </StackPanel>
+
+
+    </Grid>
+</UserControl>
