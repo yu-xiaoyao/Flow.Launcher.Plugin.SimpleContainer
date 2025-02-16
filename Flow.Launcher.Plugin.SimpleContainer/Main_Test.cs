@@ -14,12 +14,12 @@ public class Main_Test
     {
         InnerLogger.SetAsConsoleLogger(LoggerLevel.DEBUG);
 
-
-        Console.WriteLine("load".IndexOf("LO", StringComparison.OrdinalIgnoreCase) == 0);
-        Console.WriteLine("load".IndexOf("LOD", StringComparison.OrdinalIgnoreCase) == 0);
-
         // test_podman();
+        test_docker_container_port_resolve();
     }
+
+
+    #region Podman Test
 
     private static void test_podman()
     {
@@ -124,6 +124,16 @@ public class Main_Test
         }
     }
 
+    #endregion
+
+    #region Docker Test
+
+    private static void test_docker_container_port_resolve()
+    {
+        cm = new DockerCmdContainerManage();
+        cm.ListContainers();
+    }
+
 
     private static void test_docker()
     {
@@ -181,4 +191,6 @@ public class Main_Test
             Console.WriteLine("error info: " + images.Message);
         }
     }
+
+    #endregion
 }

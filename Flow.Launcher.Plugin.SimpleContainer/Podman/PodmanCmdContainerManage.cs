@@ -16,7 +16,6 @@ public class PodmanCmdContainerManage : IContainerManage
 {
     private const string CommandRootJsonFormat = " --format \"{{json .}}\"";
 
-    private bool _isInit = false;
     private readonly string _executorPath;
     private int Timeout = 10 * 1000;
 
@@ -41,16 +40,22 @@ public class PodmanCmdContainerManage : IContainerManage
         return "podman";
     }
 
+
+    private ResultResponse<string> _getVersion()
+    {
+        return CommandUtil.ExecuteWithArgs(_executorPath, "version --format {{.Server.Version}}", Timeout);
+    }
+
     public bool IsRunning()
     {
-        var result = CommandUtil.ExecuteWithArgs(_executorPath, "version --format {{.Server.Version}}", Timeout);
+        var result = _getVersion();
         return result.Success;
     }
 
 
     public Tuple<bool, string> GetVersion()
     {
-        var result = CommandUtil.ExecuteWithArgs(_executorPath, "version --format {{.Server.Version}}", Timeout);
+        var result = _getVersion();
         return result.Success
             ? new Tuple<bool, string>(true, result.Result)
             : new Tuple<bool, string>(true, result.Message);

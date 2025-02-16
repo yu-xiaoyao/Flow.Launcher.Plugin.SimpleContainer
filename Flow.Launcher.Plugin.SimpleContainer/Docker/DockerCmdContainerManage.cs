@@ -6,6 +6,7 @@ using Flow.Launcher.Plugin.SimpleContainer.Command;
 using Flow.Launcher.Plugin.SimpleContainer.Common;
 using Flow.Launcher.Plugin.SimpleContainer.Model;
 using Flow.Launcher.Plugin.SimpleContainer.Util;
+using JetBrains.Annotations;
 
 namespace Flow.Launcher.Plugin.SimpleContainer.Docker;
 
@@ -39,16 +40,22 @@ public class DockerCmdContainerManage : IContainerManage
         return "docker";
     }
 
+
+    private ResultResponse<string> _getVersion()
+    {
+        return CommandUtil.ExecuteWithArgs(_executorPath, "version --format {{.Server.Version}}", Timeout);
+    }
+
     public bool IsRunning()
     {
-        var result = CommandUtil.ExecuteWithArgs(_executorPath, "version --format {{.Server.Version}}", Timeout);
+        var result = _getVersion();
         return result.Success;
     }
 
 
     public Tuple<bool, string> GetVersion()
     {
-        var result = CommandUtil.ExecuteWithArgs(_executorPath, "version --format {{.Server.Version}}", Timeout);
+        var result = _getVersion();
         return result.Success
             ? new Tuple<bool, string>(true, result.Result)
             : new Tuple<bool, string>(true, result.Message);
@@ -188,13 +195,28 @@ public class DockerCmdContainerManage : IContainerManage
 
     public ResultResponse<string> PullImage(string repo, ImageArch? arch = null)
     {
-        throw new NotImplementedException();
+        InnerLogger.Logger.Debug($"PullImage. {repo}. arch = {arch}");
+        var arg = "";
+        if (arch != null)
+        {
+            arg = $"--platform={_convertPlatform((ImageArch)arch)} ";
+        }
+
+        //TODO copy command or open cmd
+        return CommandUtil.ExecuteWithArgs(_executorPath, "pull " + arg + repo, Timeout);
     }
 
     public string GetPullImageCommand(string repo, ImageArch? arch = null)
     {
-        throw new NotImplementedException();
+        var arg = "";
+        if (arch != null)
+        {
+            arg = $"--arch={_convertPlatform((ImageArch)arch)} ";
+        }
+
+        return $"{GetContainerId()} pull {arg} {repo}";
     }
+
 
     public string TagImage(string id, string newTag)
     {
@@ -256,13 +278,74 @@ public class DockerCmdContainerManage : IContainerManage
 
     private static ContainerInfo _convertToBaseContainerInfo(DockerContainerInfo containerInfo)
     {
-        var labels = containerInfo.Labels.Split(",", StringSplitOptions.TrimEntries);
+        var createTime = FormatUtil.FormatDateTime(containerInfo.CreatedAt);
 
-        return new ContainerInfo
+        InnerLogger.Logger.Info(containerInfo.Ports);
+
+        List<ContainerPortMapping> ports = _resolveDockerPortMapping(containerInfo.Ports);
+        // if (containerInfo.Ports != null)
+        // {
+        //     ports = containerInfo.Ports.Select(p =>
+        //             new ContainerPortMapping
+        //             {
+        //                 HostIp = p.HostIp,
+        //                 HostPort = p.HostPort,
+        //                 ContainerPort = p.ContainerPort,
+        //                 Range = p.Range,
+        //                 Protocol = p.Protocol
+        //             })
+        //         .ToList();
+        // }
+        //
+        // return new ContainerInfo
+        // {
+        //     ContainerType = ContainerType.Docker,
+        //     RawInfo = containerInfo,
+        //     Command = string.Join(" ", containerInfo.Command),
+        //     CreatedAt = createTime,
+        //     Id = containerInfo.ID,
+        //     Image = containerInfo.Image,
+        //     Labels = containerInfo.Labels,
+        //     Mounts = containerInfo.Mounts,
+        //     Names = containerInfo.Names,
+        //     Networks = containerInfo.Networks,
+        //     State = containerInfo.State,
+        //     Status = containerInfo.Status,
+        //     Ports = ports
+        // };
+        return new ContainerInfo();
+    }
+
+    private static List<ContainerPortMapping> _resolveDockerPortMapping(string portsStr)
+    {
+        var ports = new List<ContainerPortMapping>();
+        if (string.IsNullOrEmpty(portsStr)) return ports;
+
+
+        var portList = portsStr.Split(", ");
+
+        InnerLogger.Logger.Info("portList = " + portList.Length);
+
+        foreach (var str in portList)
         {
-            ContainerType = ContainerType.Docker,
-            //TODO more field
-        };
+            var range = str.Split("->");
+            if (range.Length != 2) continue;
+
+            var first = range[0].Trim();
+            var second = range[1].Trim();
+
+            var index = first.LastIndexOf(":");
+            var hostIp = "";
+            if (index > 0)
+            {
+                first = first.Substring(0, index);
+            }
+
+            InnerLogger.Logger.Info($"first = {first}. second = {second}");
+        }
+
+
+        return ports;
     }
 
     public ResultResponse<ContainerDetailInfo> GetContainer(string id)
@@ -275,37 +358,59 @@ public class DockerCmdContainerManage : IContainerManage
 
     public ResultResponse<string> StartContainer(string id)
     {
-        throw new NotImplementedException();
+        return CommandUtil.ExecuteWithArgs(_executorPath, "container start " + id, Timeout);
     }
 
     public ResultResponse<string> RestartContainer(string id)
     {
-        throw new NotImplementedException();
+        return CommandUtil.ExecuteWithArgs(_executorPath, "container restart " + id, Timeout);
     }
 
     public ResultResponse<string> StopContainer(string id, int timeSeconds = -1)
     {
-        throw new NotImplementedException();
-    }
+        var arg = "";
+        if (timeSeconds > 0)
+            arg = $" --time {timeSeconds}";
 
-    public ResultResponse<string> KillContainer(string id, string signal = null)
-    {
-        throw new NotImplementedException();
+        return CommandUtil.ExecuteWithArgs(_executorPath, "container stop " + id + arg, Timeout);
     }
 
     public ResultResponse<string> RemoveContainer(string id, bool force = false)
     {
-        throw new NotImplementedException();
+        if (force)
+        {
+            StopContainer(id);
+        }
+
+        return CommandUtil.ExecuteWithArgs(_executorPath, "container rm " + id, Timeout);
+    }
+
+    public ResultResponse<string> KillContainer(string id, string signal = null)
+    {
+        return CommandUtil.ExecuteWithArgs(_executorPath, "container inspect " + id + CommandRootJsonFormat,
+            Timeout);
     }
 
     public void ExecContainer(string id, string execShellPath, string containerCommand)
     {
-        throw new NotImplementedException();
+        CommandUtil.ExecuteWithArgs(execShellPath, containerCommand, Timeout);
     }
 
 
     public void LogContainer(string id, string shellPath, int lastLine = 200)
     {
         throw new NotImplementedException();
+    }
+
+
+    private string _convertPlatform(ImageArch arch)
+    {
+        switch (arch)
+        {
+            case ImageArch.Arm64:
+                return "arm64";
+            default:
+                return "amd64";
+        }
     }
 }
