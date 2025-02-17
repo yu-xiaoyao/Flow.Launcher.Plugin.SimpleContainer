@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using Flow.Launcher.Plugin.SimpleContainer.Docker;
+using Flow.Launcher.Plugin.SimpleContainer.Model;
 using Flow.Launcher.Plugin.SimpleContainer.Podman;
 using Flow.Launcher.Plugin.SimpleContainer.Util;
 
@@ -14,8 +15,8 @@ public class Main_Test
     {
         InnerLogger.SetAsConsoleLogger(LoggerLevel.DEBUG);
 
-        // test_podman();
-        test_docker_container_port_resolve();
+        test_podman();
+        // test_docker_container_port_resolve();
     }
 
 
@@ -33,7 +34,7 @@ public class Main_Test
 
         // test_podman_save_image();
 
-        // test_podman_containers();
+        test_podman_containers();
 
         // test_podman_start_container();
         // test_podman_stop_container();
@@ -120,6 +121,10 @@ public class Main_Test
             foreach (var c in containers)
             {
                 Console.WriteLine($"Image = {c.Image}. Id = {c.GetShortId()}. Name = {c.GetName()}");
+                foreach (var p in c.Ports)
+                {
+                    Console.WriteLine($"--> {p.HostIp}:{p.HostPort} -> {p.ContainerPort}/{p.Protocol}");
+                }
             }
         }
     }
@@ -130,8 +135,15 @@ public class Main_Test
 
     private static void test_docker_container_port_resolve()
     {
-        cm = new DockerCmdContainerManage();
-        cm.ListContainers();
+        // cm = new DockerCmdContainerManage();
+        // cm.ListContainers();
+
+        var list = DockerCmdContainerManage._resolveDockerPortMapping("0.0.0.0:30000->40000/tcp");
+        foreach (var cpm in list)
+        {
+            InnerLogger.Logger.Info(
+                $"Result: {cpm.HostIp}:{cpm.HostPort} --> {cpm.ContainerPort}/{cpm.Protocol}");
+        }
     }
 
 

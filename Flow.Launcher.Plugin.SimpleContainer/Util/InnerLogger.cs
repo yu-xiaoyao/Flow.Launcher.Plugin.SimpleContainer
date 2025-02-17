@@ -16,7 +16,7 @@ public class InnerLogger
     public static LoggerLevel Level { get; set; } = LoggerLevel.OFF;
     public static ILogger Logger { get; set; } = new NoneLogger();
 
-    public static void SetAsFlowLauncherLogger(IPublicAPI publicApi, LoggerLevel level = LoggerLevel.ERROR)
+    public static void SetAsFlowLauncherLogger(IPublicAPI publicApi, LoggerLevel level = LoggerLevel.OFF)
     {
         Level = level;
         Logger = new LoggerImpl(new FlowLauncherLogger(publicApi), Level);

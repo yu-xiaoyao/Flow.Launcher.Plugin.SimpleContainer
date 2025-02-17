@@ -316,7 +316,7 @@ public class DockerCmdContainerManage : IContainerManage
         return new ContainerInfo();
     }
 
-    private static List<ContainerPortMapping> _resolveDockerPortMapping(string portsStr)
+    public static List<ContainerPortMapping> _resolveDockerPortMapping(string portsStr)
     {
         var ports = new List<ContainerPortMapping>();
         if (string.IsNullOrEmpty(portsStr)) return ports;
@@ -324,26 +324,76 @@ public class DockerCmdContainerManage : IContainerManage
 
         var portList = portsStr.Split(", ");
 
-        InnerLogger.Logger.Info("portList = " + portList.Length);
+        InnerLogger.Logger.Debug("portList = " + portList.Length);
 
         foreach (var str in portList)
         {
-            var range = str.Split("->");
-            if (range.Length != 2) continue;
+            var split = str.Split("->");
+            if (split.Length != 2) continue;
 
-            var first = range[0].Trim();
-            var second = range[1].Trim();
+            var first = split[0].Trim();
+            var second = split[1].Trim();
 
-            var index = first.LastIndexOf(":");
-            var hostIp = "";
-            if (index > 0)
+
+            try
             {
-                first = first.Substring(0, index);
+                var index = first.LastIndexOf(":", StringComparison.Ordinal);
+                var hostIp = "";
+                string hostPortStr;
+                if (index > 0)
+                {
+                    hostIp = first[..index];
+                    hostPortStr = first[(index + 1)..];
+                }
+                else
+                {
+                    hostPortStr = first;
+                }
+
+                var hostPortTryParse = int.TryParse(hostPortStr, out var hostPort);
+                if (!hostPortTryParse)
+                {
+                    InnerLogger.Logger.Error(
+                        $"Host Port Convert Error. hostIp = [{portsStr}]. hostPortStr = [{hostPortStr}]");
+                    continue;
+                }
+
+                var protocol = "tcp";
+
+                string containerPortStr;
+
+                var si = second.IndexOf("/", StringComparison.Ordinal);
+                if (si != -1)
+                {
+                    containerPortStr = second[..si];
+                    protocol = second[(si + 1)..];
+                }
+                else
+                {
+                    containerPortStr = second;
+                }
+
+                var containerPortTryParse = int.TryParse(containerPortStr, out var containerPort);
+                if (!containerPortTryParse)
+                {
+                    InnerLogger.Logger.Error(
+                        $"Container Port Convert Error. hostIp = [{portsStr}]. hostPortStr = [{hostPortStr}]");
+                    continue;
+                }
+
+                ports.Add(new ContainerPortMapping
+                {
+                    HostIp = hostIp,
+                    HostPort = hostPort,
+                    Protocol = protocol,
+                    ContainerPort = containerPort
+                });
             }
-
-            InnerLogger.Logger.Info($"first = {first}. second = {second}");
+            catch (Exception e)
+            {
+                InnerLogger.Logger.Error($"portsStr = [{portsStr}]. cause: {e.Message}");
+            }
         }
-
 
         return ports;
     }

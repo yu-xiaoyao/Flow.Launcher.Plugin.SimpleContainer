@@ -26,8 +26,7 @@ namespace Flow.Launcher.Plugin.SimpleContainer
 
         public void Init(PluginInitContext context)
         {
-            // DEBUG
-            InnerLogger.SetAsFlowLauncherLogger(context.API, LoggerLevel.DEBUG);
+            InnerLogger.SetAsFlowLauncherLogger(context.API, LoggerLevel.ERROR);
 
             _context = context;
             _settings = context.API.LoadSettingJsonStorage<Settings>();

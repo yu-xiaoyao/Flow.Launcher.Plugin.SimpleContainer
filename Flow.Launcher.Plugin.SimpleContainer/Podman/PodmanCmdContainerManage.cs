@@ -288,19 +288,33 @@ public class PodmanCmdContainerManage : IContainerManage
             ? FormatUtil.FormatDateTimeISO(containerInfo.Created)
             : FormatUtil.FormatDateTime(createAtStr);
 
-        List<ContainerPortMapping> ports = null;
+        List<ContainerPortMapping> ports = new List<ContainerPortMapping>();
         if (containerInfo.Ports != null)
         {
-            ports = containerInfo.Ports.Select(p =>
-                    new ContainerPortMapping
+            foreach (var p in containerInfo.Ports)
+            {
+                for (var i = 0; i < p.Range; i++)
+                {
+                    ports.Add(new ContainerPortMapping
                     {
                         HostIp = p.HostIp,
-                        HostPort = p.HostPort,
-                        ContainerPort = p.ContainerPort,
-                        Range = p.Range,
+                        HostPort = p.HostPort + i,
+                        ContainerPort = p.ContainerPort + i,
                         Protocol = p.Protocol
-                    })
-                .ToList();
+                    });
+                }
+            }
+
+            // ports = containerInfo.Ports.Select(p =>
+            //         new ContainerPortMapping
+            //         {
+            //             HostIp = p.HostIp,
+            //             HostPort = p.HostPort,
+            //             ContainerPort = p.ContainerPort,
+            //             Range = p.Range,
+            //             Protocol = p.Protocol
+            //         })
+            //     .ToList();
         }
 
         return new ContainerInfo

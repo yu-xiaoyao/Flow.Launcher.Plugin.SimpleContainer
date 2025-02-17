@@ -48,6 +48,6 @@ public class ContainerPortMapping
     public string HostIp { get; set; }
     public int HostPort { get; set; }
     public int ContainerPort { get; set; }
-    public int Range { get; set; }
     public string Protocol { get; set; }
+    
 }
